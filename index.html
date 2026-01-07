@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>Mon Service SMS Virtuel</title>
+    <style>
+        body { font-family: sans-serif; text-align: center; padding: 50px; background: #f4f4f4; }
+        .card { background: white; padding: 20px; border-radius: 10px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); display: inline-block; }
+        button { background: #007bff; color: white; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer; }
+        #code-sms { font-size: 24px; font-weight: bold; color: green; margin-top: 20px; }
+    </style>
+</head>
+<body>
+
+    <h2>Obtenez un numéro virtuel</h2>
+    <div class="card">
+        <button onclick="getNumero()">Commander un numéro (WhatsApp)</button>
+        <p id="num-affiche">Numéro : ---</p>
+        <div id="code-sms">En attente du code...</div>
+    </div>
+
+    <script>
+        const BACKEND_URL = "https://ton-serveur-sur-render.com";
+
+        async function getNumero() {
+            const res = await fetch(`${BACKEND_URL}/commander`);
+            const data = await res.json();
+            document.getElementById('num-affiche').innerText = "Numéro : " + data.number;
+            
+            // Vérifier le code toutes les 5 secondes
+            const interval = setInterval(async () => {
+                const check = await fetch(`${BACKEND_URL}/verifier/${data.id}`);
+                const status = await check.json();
+                if(status.status.includes("STATUS_OK")) {
+                    document.getElementById('code-sms').innerText = "CODE : " + status.status.split(':')[1];
+                    clearInterval(interval);
+                }
+            }, 5000);
+        }
+    </script>
+</body>
+</html>
